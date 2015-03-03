@@ -9,6 +9,7 @@ package trie
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -134,5 +135,40 @@ func TestDumpKeys(t *testing.T) {
 	}
 	if n := len(buf.Next(1)); n != 0 {
 		t.Errorf("Result should have been %q, but it was %q", 0, n)
+	}
+}
+
+func BenchmarkTrieLookup(b *testing.B) {
+	root := Trie{}
+	n := 1000
+	var key string
+	for i := 0; i < n; i++ {
+		s := fmt.Sprintf("%010d", i)
+		root.Insert(s)
+		key = s
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, ok := root.Lookup(key); !ok {
+			b.Fatal("failed to lookup node, benchmark failed")
+		}
+	}
+}
+
+func BenchmarkNaiveLookup(b *testing.B) {
+	n := 1000
+	a := make([]string, n)
+	var key string
+	for i := 0; i < n; i++ {
+		a[i] = fmt.Sprintf("%010d", i)
+	}
+	key = a[n-1]
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, s := range a {
+			if s == key {
+				break
+			}
+		}
 	}
 }
